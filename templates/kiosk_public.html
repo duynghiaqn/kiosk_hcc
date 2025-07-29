@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HCC Counter">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-icon.png') }}">
+    <link rel="icon" href="{{ url_for('static', filename='apple-icon.png') }}">
+    <title>MÀN HÌNH TV</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" onerror="this.onerror=null; this.href='/static/bootstrap.min.css';">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" onerror="this.onerror=null; this.href='/static/bootstrap-icons.min.css';">
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            overflow-x: hidden;
+        }
+        .header {
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .header h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #c00000;
+            margin:0;
+        }
+        .header img {
+            max-height: 60px;
+            width: auto;
+        }
+        .table-responsive {
+            width: 100%;
+            margin: 0 auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 3px solid #c00000;
+            padding: 20px;
+            text-align: center;
+            font-size: 3rem;
+            font-weight: 500;
+        }
+        th {
+            background-color: #c00000;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        td {
+            background-color: #f8f9fa;
+        }
+        .blink {
+            animation: blink 1s 5; /* Chạy 5 lần */
+            animation-fill-mode: forwards; /* Giữ trạng thái cuối */
+            font-weight: bold;
+        }
+        th:nth-child(1) {
+            background-color: #c00000;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        th:nth-child(2) {
+            background-color: #c00000;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        th:nth-child(3) {
+            background-color: #c00000;
+            color: #ffffff;
+            font-weight: bold;
+        }
+        @keyframes blink {
+            50% { opacity: 0; font-weight: bold; }
+        }
+        .no-counters {
+            font-size: 3.5rem;
+            color: #555555;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        footer {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-top: 2px solid #c00000;
+        }
+        #currentTime {
+            font-size: 2.5rem;
+            color: #333333;
+            font-weight: 500;
+        }
+        @media (max-width: 1366px) {
+            .header h1 {
+                font-size: 3rem;
+                margin:0;
+            }
+            th, td {
+                font-size: 2.1rem;
+                padding: 15px;
+            }
+            .no-counters {
+                font-size: 2.5rem;
+                font-weight: bold;
+            }
+            #currentTime {
+                font-size: 2rem;
+            }
+        }
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+                margin:0;
+            }
+            th, td {
+                font-size: 2rem;
+                padding: 10px;
+            }
+            .no-counters {
+                font-size: 2rem;
+                font-weight: bold;
+            }
+            #currentTime {
+                font-size: 1.5rem;
+            }
+        }
+        @media (min-width: 3840px) {
+            .header h1 {
+                font-size: 8vw;
+                margin:0;
+            }
+            th, td {
+                font-size: 4vw;
+                padding: 30px;
+            }
+            .no-counters {
+                font-size: 4vw;
+                font-weight: bold;
+            }
+            #currentTime {
+                font-size: 3vw;
+            }
+        }
+        #fullscreenToggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1050;
+            padding: 8px 12px;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+        .fullscreen-active #fullscreenToggle {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .fullscreen-active:hover #fullscreenToggle {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo"><h1 id="centerName"> TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG</h1>
+    </div>
+    <div class="table-responsive">
+        <table id="counterTable" class="table">
+            <thead>
+                <tr>
+                    <th>QUẦY</th>
+                    <th>SỐ ĐANG PHỤC VỤ</th>
+                    <th>SỐ KẾ TIẾP</th>
+                </tr>
+            </thead>
+            <tbody id="counterBody"></tbody>
+        </table>
+    </div>
+    <button id="fullscreenToggle" class="btn btn-dark btn-sm" onclick="toggleFullscreen()">
+        <i id="fullscreenIcon" class="bi bi-arrows-fullscreen me-1"></i> Màn hình
+    </button>
+    <div class="no-counters" id="noCounters" style="display: none;">
+        Không có quầy giao dịch nào được cấu hình
+    </div>
+    <footer>
+        <div id="currentTime"></div>
+    </footer>
+    <audio id="audioPlayer" style="display: none;"></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" onerror="this.onerror=null; this.src='/static/bootstrap.bundle.min.js';"></script>
+    <script>
+        // Lấy center_name từ /get_config
+        async function loadCenterName() {
+            try {
+                const response = await fetch('/get_config');
+                const data = await response.json();
+                document.getElementById('centerName').textContent = data.center_name || 'TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG';
+            } catch (error) {
+                console.error('Failed to load center name:', error);
+            }
+        }
+        loadCenterName();
+
+        let previousServingNumbers = JSON.parse(localStorage.getItem('servingNumbers')) || {};
+        let audioQueue = [];
+        let isPlaying = false;
+        let audioContext = null;
+        const audioCache = {};
+        const audioDurations = {
+            'invite_customer.mp3': 1.0,
+            'prefix_number.mp3': 0.4,
+            'number_0.mp3': 0.4,
+            'number_1.mp3': 0.4,
+            'number_2.mp3': 0.4,
+            'number_3.mp3': 0.4,
+            'number_4.mp3': 0.4,
+            'number_5.mp3': 0.4,
+            'number_6.mp3': 0.4,
+            'number_7.mp3': 0.4,
+            'number_8.mp3': 0.4,
+            'number_9.mp3': 0.4,
+            'please_to_counter.mp3': 1.5,
+            'counter_1.mp3': 1.0,
+            'counter_2.mp3': 1.0,
+            'counter_3.mp3': 1.0,
+            'counter_4.mp3': 1.0,
+            'counter_5.mp3': 1.0,
+            'counter_6.mp3': 1.0,
+            'counter_7.mp3': 1.0,
+            'counter_8.mp3': 1.0,
+            'counter_9.mp3': 1.0,
+            'counter_10.mp3': 1.0,
+            'counter_11.mp3': 1.0,
+            'counter_12.mp3': 1.0
+        };
+        const playbackRate = 1.2;
+        const playedRecalls = new Set(JSON.parse(localStorage.getItem('playedRecalls')) || []);
+
+        // Cập nhật giờ hiện tại
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('vi-VN', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Preload file âm thanh
+        async function preloadAudioFiles() {
+            const files = [
+                'invite_customer.mp3',
+                'prefix_number.mp3',
+                'please_to_counter.mp3',
+                ...Array.from({length: 10}, (_, i) => `number_${i}.mp3`),
+                ...Array.from({length: 12}, (_, i) => `counter_${i + 1}.mp3`)
+            ];
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            for (const file of files) {
+                try {
+                    const response = await fetch(`/static/audio/${file}`);
+                    if (!response.ok) throw new Error(`File ${file} not found`);
+                    const arrayBuffer = await response.arrayBuffer();
+                    audioCache[file] = await audioContext.decodeAudioData(arrayBuffer);
+                } catch (error) {
+                    console.warn(`Audio file ${file} not found:`, error);
+                }
+            }
+        }
+
+        // Tạo danh sách file âm thanh cho số thứ tự
+        function getNumberAudioFiles(number) {
+            if (!number || number === '---') return [];
+            const numStr = number.toString().padStart(4, '0');
+            const files = [];
+            for (const digit of numStr) {
+                files.push(`number_${parseInt(digit)}.mp3`);
+            }
+            return files;
+        }
+
+        // Phát âm thanh tuần tự
+        async function playAudioSequence(ticketNumber, counterId) {
+            if (!audioContext || audioContext.state === 'closed') {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const audioFiles = [];
+            if (audioCache['invite_customer.mp3']) audioFiles.push('invite_customer.mp3');
+            if (audioCache['prefix_number.mp3']) audioFiles.push('prefix_number.mp3');
+            for (let digit of ticketNumber) {
+                const numberFile = `number_${digit}.mp3`;
+                if (audioCache[numberFile]) audioFiles.push(numberFile);
+            }
+            if (audioCache['please_to_counter.mp3']) audioFiles.push('please_to_counter.mp3');
+            const counterFile = `counter_${counterId}.mp3`;
+            if (audioCache[counterFile]) audioFiles.push(counterFile);
+
+            if (audioFiles.length === 0) {
+                console.warn('Không tìm thấy file âm thanh nào');
+                return;
+            }
+
+            let currentTime = audioContext.currentTime;
+            for (const file of audioFiles) {
+                try {
+                    const buffer = audioCache[file];
+                    if (!buffer) continue;
+                    const source = audioContext.createBufferSource();
+                    source.buffer = buffer;
+                    source.playbackRate.value = playbackRate;
+                    source.connect(audioContext.destination);
+                    source.start(currentTime);
+                    const duration = audioDurations[file] / playbackRate;
+                    currentTime += duration + 0.01;
+                } catch (error) {
+                    console.error(`Error playing ${file}:`, error);
+                }
+            }
+
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    if (audioContext) audioContext.close();
+                    audioContext = null;
+                    resolve();
+                }, (currentTime - audioContext.currentTime) * 1000 + 100);
+            });
+        }
+
+        // Hàm phát hàng đợi âm thanh
+        async function playAudioQueue() {
+            if (isPlaying || audioQueue.length === 0) return;
+            isPlaying = true;
+            const { ticketNumber, counterId } = audioQueue.shift();
+            await playAudioSequence(ticketNumber, counterId);
+            isPlaying = false;
+            playAudioQueue(); // Phát âm thanh tiếp theo trong hàng đợi
+        }
+
+        // Hàm thêm vào hàng đợi âm thanh
+        function addToAudioQueue(ticketNumber, counterId, timestamp) {
+            const recallKey = `${ticketNumber}_${counterId}_${timestamp}`;
+            if (!playedRecalls.has(recallKey)) {
+                audioQueue.push({ ticketNumber, counterId });
+                playedRecalls.add(recallKey);
+                localStorage.setItem('playedRecalls', JSON.stringify([...playedRecalls]));
+                playAudioQueue();
+            }
+        }
+
+        // Kiểm tra đăng nhập
+        async function checkLogin() {
+            try {
+                const response = await fetch('/get_status', {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Error checking login:', error);
+                alert('Lỗi kết nối server: ' + error.message);
+                return false;
+            }
+        }
+
+        // Tải danh sách quầy
+        async function loadCounters() {
+            if (!(await checkLogin())) return;
+
+            try {
+                const response = await fetch('/get_status', {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}: Không thể tải danh sách quầy`);
+                }
+                const data = await response.json();
+
+                const counterBody = document.getElementById('counterBody');
+                const noCounters = document.getElementById('noCounters');
+                counterBody.innerHTML = '';
+
+                if (!data.kiosk_info || Object.keys(data.kiosk_info).length === 0) {
+                    noCounters.style.display = 'block';
+                    return;
+                }
+
+                noCounters.style.display = 'none';
+
+                const currentServingNumbers = data.serving_numbers || {};
+                Object.keys(data.kiosk_info).forEach(counter => {
+                    const counterId = counter.split('_')[1];
+                    const counterName = data.kiosk_info[counter].name || `Quầy ${counterId}`;
+                    const servingNumber = currentServingNumbers[counter] || '---';
+                    const queueLength = data.queues[counter] ? data.queues[counter].length : 0;
+                    const nextNumber = queueLength > 0 ? data.queues[counter][0] : '---';
+
+                    if (previousServingNumbers[counter] !== servingNumber && servingNumber !== '---') {
+                        addToAudioQueue(servingNumber, counterId, new Date().toISOString());
+                    }
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${counterName}</td>
+                        <td class="${servingNumber !== '---' ? 'fw-bolder text-danger' : 'text-secondary'}">${servingNumber}</td>
+                        <td class="${nextNumber !== '---' ? 'blink text-primary' : 'text-secondary'}">${nextNumber}</td>
+                    `;
+                    counterBody.appendChild(row);
+                });
+
+                localStorage.setItem('servingNumbers', JSON.stringify(currentServingNumbers));
+                previousServingNumbers = currentServingNumbers;
+            } catch (error) {
+                console.error('Error loading counters:', error);
+                alert('Lỗi tải danh sách quầy: ' + error.message);
+                document.getElementById('noCounters').style.display = 'block';
+                document.getElementById('noCounters').textContent = 'Lỗi tải danh sách quầy';
+            }
+        }
+
+        // Kiểm tra trạng thái gọi lại
+        async function checkRecallStatus() {
+            try {
+                const response = await fetch('/get_recall_status', {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                const data = await response.json();
+                const recalls = data.last_recalls || [];
+                recalls.forEach(recall => {
+                    addToAudioQueue(recall.ticket_number, recall.counter_id, recall.timestamp);
+                });
+            } catch (error) {
+                console.error('Error checking recall status:', error);
+            }
+        }
+
+        // Tải lại dữ liệu và cập nhật giờ
+        function startAutoRefresh() {
+            preloadAudioFiles();
+            loadCounters();
+            setInterval(loadCounters, 1000);
+            updateTime();
+            setInterval(updateTime, 1000);
+            setInterval(checkRecallStatus, 1000);
+        }
+
+        // Tải danh sách quầy khi trang tải xong
+        window.onload = function() {
+            startAutoRefresh();
+        };
+
+        // Fullscreen
+        function toggleFullscreen() {
+            const elem = document.documentElement;
+            const icon = document.getElementById("fullscreenIcon");
+
+            if (!document.fullscreenElement) {
+                elem.requestFullscreen().then(() => {
+                    icon.classList.remove("bi-arrows-fullscreen");
+                    icon.classList.add("bi-fullscreen-exit");
+                }).catch(err => {
+                    alert(`Không thể bật toàn màn hình: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen().then(() => {
+                    icon.classList.remove("bi-fullscreen-exit");
+                    icon.classList.add("bi-arrows-fullscreen");
+                });
+            }
+        }
+
+        document.addEventListener("fullscreenchange", () => {
+            const icon = document.getElementById("fullscreenIcon");
+            const body = document.body;
+            const btn = document.getElementById("fullscreenToggle");
+
+            if (!document.fullscreenElement) {
+                body.classList.remove("fullscreen-active");
+                icon.classList.remove("bi-fullscreen-exit");
+                icon.classList.add("bi-arrows-fullscreen");
+                btn.style.opacity = "1";
+            } else {
+                body.classList.add("fullscreen-active");
+                icon.classList.remove("bi-arrows-fullscreen");
+                icon.classList.add("bi-fullscreen-exit");
+                btn.style.opacity = "0"; // ẩn ngay, chỉ hiện khi hover
+            }
+        });
+    </script>
+</body>
+</html>

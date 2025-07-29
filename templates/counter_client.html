@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HCC Counter">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-icon.png') }}">
+    <link rel="icon" href="{{ url_for('static', filename='apple-icon.png') }}">
+    <title>Quản lý quầy gọi số</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" onerror="this.onerror=null; this.href='/static/bootstrap.min.css';">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" onerror="this.onerror=null; this.href='/static/bootstrap-icons.min.css';">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.4/dist/sweetalert2.min.css" rel="stylesheet" onerror="this.onerror=null; this.href='/static/sweetalert2.min.css';">
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .navbar {
+            background-color: #4CAF50;
+            padding: 15px;
+        }
+        .navbar-brand, .nav-link {
+            color: #ffffff !important;
+            font-size: 1.5rem;
+        }
+        .nav-link:hover {
+            color: #e0e0e0 !important;
+        }
+        .container {
+            max-width: 100%;
+            padding: 20px;
+        }
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .counter-select {
+            width: 50%;
+            margin: 0 auto 30px;
+            font-size: 2rem;
+        }
+        .counter-info {
+            background-color: #f8f9fa;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .counter-info p {
+            font-size: 2rem;
+            margin: 10px 0;
+        }
+        .blink {
+            animation: blink 1s infinite;
+            font-weight: bold;
+        }
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .action-buttons .btn {
+            font-size: 1.5rem;
+            padding: 10px 20px;
+        }
+        .no-counters {
+            text-align: center;
+            font-size: 2rem;
+            color: #555555;
+            margin: 30px 0;
+        }
+        footer {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-top: 2px solid #4CAF50;
+            text-align: center;
+        }
+        #currentTime {
+            font-size: 2.5rem;
+            color: #333333;
+            font-weight: 500;
+        }
+		.modal-table {
+            font-size: 0.9rem;
+        }
+        .modal-table th, .modal-table td {
+            vertical-align: middle;
+        }
+        @media (max-width: 1366px) {
+            .header h1 {
+                font-size: 3rem;
+            }
+            .counter-select {
+                font-size: 1.8rem;
+            }
+            .counter-info p {
+                font-size: 1.8rem;
+            }
+            .action-buttons .btn {
+                font-size: 1.2rem;
+            }
+            .no-counters {
+                font-size: 1.8rem;
+            }
+            #currentTime {
+                font-size: 2rem;
+            }
+        }
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            .navbar-brand, .nav-link {
+                font-size: 1.2rem;
+            }
+            .counter-select {
+                width: 80%;
+                font-size: 1.5rem;
+            }
+            .counter-info p {
+                font-size: 1.5rem;
+            }
+            .action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .action-buttons .btn {
+                font-size: 1rem;
+            }
+            .no-counters {
+                font-size: 1.5rem;
+            }
+            #currentTime {
+                font-size: 1.5rem;
+            }
+        }
+        @media (min-width: 3840px) {
+            .header h1 {
+                font-size: 5vw;
+            }
+            .counter-select {
+                font-size: 2.5vw;
+            }
+            .counter-info p {
+                font-size: 2.5vw;
+            }
+            .action-buttons .btn {
+                font-size: 2vw;
+            }
+            .no-counters {
+                font-size: 2.5vw;
+            }
+            #currentTime {
+                font-size: 3vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><i class="bi bi-house-fill me-2"></i>HỆ THỐNG XẾP HÀNG TTPVHCC</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/select_counter" target="_blank"><i class="bi bi-person-fill me-1"></i>Khách hàng</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/counter_client"><i class="bi bi-person-workspace me-1"></i>Nhân viên</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/kiosk_public" target="_blank"><i class="bi bi-display-fill me-1"></i>Hiển thị chung</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/statistics"><i class="bi bi-bar-chart-fill me-1"></i>Thống kê</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/config_counters"><i class="bi bi-gear-fill me-1"></i>Cấu hình</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <div class="header">
+            <h1><i class="bi bi-person-workspace me-2"></i>Quản lý quầy gọi số</h1>
+        </div>
+        <select id="counterSelect" class="form-select counter-select" onchange="loadCounterInfo()">
+            <option value="">Chọn quầy</option>
+        </select>
+        <div class="counter-info" id="counterInfo" style="display: none;">
+            <p>Số đang phục vụ: <span id="servingNumber" class="text-secondary">---</span></p>
+            <p>Số kế tiếp: <span id="nextNumber" class="text-secondary">---</span></p>
+            <p>Số người chờ: <span id="queueLength" class="text-secondary">0</span></p>
+            <div class="action-buttons">
+                <button class="btn btn-success" onclick="callNext()"><i class="bi bi-megaphone-fill me-2"></i>Gọi số</button>
+                <button class="btn btn-primary" onclick="completeNumber()"><i class="bi bi-check-circle-fill me-2"></i>Hoàn thành</button>
+                <button class="btn btn-warning" onclick="recallNumber()"><i class="bi bi-arrow-repeat me-2"></i>Gọi lại</button>
+				<button class="btn btn-danger" onclick="viewTickets()"><i class="bi bi-list-ul me-2"></i>Xem số Online</button>
+            </div>
+        </div>
+        <div class="no-counters" id="noCounters" style="display: none;">
+            Không có quầy giao dịch nào được cấu hình
+        </div>
+		        <div class="modal fade" id="ticketsModal" tabindex="-1" aria-labelledby="ticketsModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="ticketsModalLabel">Danh sách số online hôm nay</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-striped table-bordered modal-table">
+                            <thead>
+                                <tr>
+                                    <th>Số thứ tự</th>
+                                    <th>Quầy</th>
+                                    <th>Thời gian</th>
+                                    <th>CCCD</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ticketsTable">
+                                <!-- Dữ liệu sẽ được thêm bằng JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div id="currentTime"></div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" onerror="this.onerror=null; this.src='/static/bootstrap.bundle.min.js';"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.4/dist/sweetalert2.all.min.js" onerror="this.onerror=null; this.src='/static/sweetalert2.all.min.js';"></script>
+    <script>
+        let selectedCounter = null;
+        let audioContext = null;
+        const audioCache = {};
+        const audioDurations = {
+            'invite_customer.mp3': 1.0, // "Xin mời khách hàng"
+            'prefix_number.mp3': 0.4, // "Số"
+            'number_0.mp3': 0.4, // "không"
+            'number_1.mp3': 0.4, // "một"
+            'number_2.mp3': 0.4, // "hai"
+            'number_3.mp3': 0.4, // "ba"
+            'number_4.mp3': 0.4, // "bốn"
+            'number_5.mp3': 0.4, // "năm"
+            'number_6.mp3': 0.4, // "sáu"
+            'number_7.mp3': 0.4, // "bảy"
+            'number_8.mp3': 0.4, // "tám"
+            'number_9.mp3': 0.4, // "chín"
+            'please_to_counter.mp3': 1.5, // "Vui lòng đến quầy"
+            'counter_1.mp3': 1.0, // "Quầy 1"
+            'counter_2.mp3': 1.0, // "Quầy 2"
+            'counter_3.mp3': 1.0,
+            'counter_4.mp3': 1.0,
+            'counter_5.mp3': 1.0,
+            'counter_6.mp3': 1.0,
+            'counter_7.mp3': 1.0,
+            'counter_8.mp3': 1.0,
+            'counter_9.mp3': 1.0,
+            'counter_10.mp3': 1.0,
+            'counter_11.mp3': 1.0,
+            'counter_12.mp3': 1.0
+        };
+        const playbackRate = 1.2; // Tốc độ phát
+
+        // Cập nhật giờ hiện tại
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleString('vi-VN', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Kiểm tra đăng nhập
+        async function checkLogin() {
+            try {
+                const response = await fetch('/get_status', {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Error checking login:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Lỗi kết nối server: ' + error.message
+                });
+                return false;
+            }
+        }
+
+        // Preload file âm thanh
+        async function preloadAudioFiles() {
+            const files = [
+                'invite_customer.mp3',
+                'prefix_number.mp3',
+                'please_to_counter.mp3',
+                ...Array.from({length: 10}, (_, i) => `number_${i}.mp3`),
+                ...Array.from({length: 12}, (_, i) => `counter_${i + 1}.mp3`)
+            ];
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            for (const file of files) {
+                try {
+                    const response = await fetch(`/static/audio/${file}`);
+                    if (!response.ok) throw new Error(`File ${file} not found`);
+                    const arrayBuffer = await response.arrayBuffer();
+                    audioCache[file] = await audioContext.decodeAudioData(arrayBuffer);
+                } catch (error) {
+                    console.warn(`Audio file ${file} not found:`, error);
+                }
+            }
+        }
+
+        // Phát âm thanh tuần tự
+        async function playAudioSequence(ticketNumber, counterId, counterName) {
+            // Tạm dừng âm thanh hiện tại
+            if (audioContext) {
+                audioContext.close();
+            }
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            const audioFiles = [];
+            if (audioCache['invite_customer.mp3']) audioFiles.push('invite_customer.mp3');
+            if (audioCache['prefix_number.mp3']) audioFiles.push('prefix_number.mp3');
+            for (let digit of ticketNumber) {
+                const numberFile = `number_${digit}.mp3`;
+                if (audioCache[numberFile]) audioFiles.push(numberFile);
+            }
+            if (audioCache['please_to_counter.mp3']) audioFiles.push('please_to_counter.mp3');
+            const counterFile = `counter_${counterId}.mp3`;
+            if (audioCache[counterFile]) audioFiles.push(counterFile);
+
+            if (audioFiles.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Cảnh báo',
+                    text: 'Không tìm thấy file âm thanh nào'
+                });
+                return;
+            }
+
+            let currentTime = audioContext.currentTime;
+            for (const file of audioFiles) {
+                try {
+                    const buffer = audioCache[file];
+                    if (!buffer) continue;
+                    const source = audioContext.createBufferSource();
+                    source.buffer = buffer;
+                    source.playbackRate.value = playbackRate;
+                    source.connect(audioContext.destination);
+                    source.start(currentTime);
+                    const duration = audioDurations[file] / playbackRate;
+                    currentTime += duration + 0.01; // Khoảng cách 10ms
+                } catch (error) {
+                    console.error(`Error playing ${file}:`, error);
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Cảnh báo',
+                        text: `Không thể phát âm thanh cho ${file.replace('.mp3', '')}`
+                    });
+                }
+            }
+
+            // Đóng AudioContext sau khi phát xong
+            setTimeout(() => {
+                audioContext.close();
+                audioContext = null;
+            }, (currentTime - audioContext.currentTime) * 1000 + 100);
+        }
+
+        // Tải danh sách quầy
+        async function loadCounters() {
+            if (!(await checkLogin())) return;
+
+            try {
+                const response = await fetch('/get_status', {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}: Không thể tải danh sách quầy`);
+                }
+                const data = await response.json();
+                const counterSelect = document.getElementById('counterSelect');
+                const noCounters = document.getElementById('noCounters');
+                counterSelect.innerHTML = '<option value="">Chọn quầy</option>';
+
+                if (!data.kiosk_info || Object.keys(data.kiosk_info).length === 0) {
+                    noCounters.style.display = 'block';
+                    document.getElementById('counterInfo').style.display = 'none';
+                    return;
+                }
+
+                noCounters.style.display = 'none';
+                Object.keys(data.kiosk_info).forEach(counter => {
+                    const counterId = counter.split('_')[1];
+                    const counterName = data.kiosk_info[counter].name || `Quầy ${counterId}`;
+                    const counterDescription = data.kiosk_info[counter].description || '';
+                    const option = document.createElement('option');
+                    option.value = counterId;
+                    option.textContent = counterDescription ? `${counterName} (${counterDescription})` : counterName;
+                    counterSelect.appendChild(option);
+                });
+
+                if (selectedCounter) {
+                    counterSelect.value = selectedCounter;
+                    loadCounterInfo();
+                }
+            } catch (error) {
+                console.error('Error loading counters:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Lỗi tải danh sách quầy: ' + error.message
+                });
+                document.getElementById('noCounters').style.display = 'block';
+                document.getElementById('counterInfo').style.display = 'none';
+            }
+        }
+
+        // Tải thông tin quầy
+        async function loadCounterInfo() {
+            const counterId = document.getElementById('counterSelect').value;
+            if (!counterId) {
+                document.getElementById('counterInfo').style.display = 'none';
+                return;
+            }
+            selectedCounter = counterId;
+
+            try {
+                const response = await fetch('/get_status', {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}: Không thể tải trạng thái`);
+                }
+                const data = await response.json();
+                const counter = `counter_${counterId}`;
+                const servingNumber = data.serving_numbers[counter] || '---';
+                const nextNumber = data.queues[counter] && data.queues[counter].length > 0 ? data.queues[counter][0] : '---';
+                const queueLength = data.queues[counter] ? data.queues[counter].length : 0;
+
+                document.getElementById('servingNumber').textContent = servingNumber;
+                document.getElementById('servingNumber').className = servingNumber !== '---' ? 'blink text-danger' : 'text-secondary';
+                document.getElementById('nextNumber').textContent = nextNumber;
+                document.getElementById('nextNumber').className = nextNumber !== '---' ? 'text-primary' : 'text-secondary';
+                document.getElementById('queueLength').textContent = queueLength;
+                document.getElementById('queueLength').className = 'text-secondary';
+                document.getElementById('counterInfo').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading counter info:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Lỗi tải thông tin quầy: ' + error.message
+                });
+                document.getElementById('counterInfo').style.display = 'none';
+            }
+        }
+
+        // Gọi số tiếp theo
+        async function callNext() {
+            const counterId = document.getElementById('counterSelect').value;
+            if (!counterId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Cảnh báo',
+                    text: 'Vui lòng chọn quầy trước khi gọi số'
+                });
+                return;
+            }
+
+            try {
+                const response = await fetch(`/call_next/${counterId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: `Gọi số ${data.ticket_number} tại ${data.counter_name}`
+                    });
+                    await playAudioSequence(data.ticket_number, counterId, data.counter_name);
+                    loadCounterInfo();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: data.error || 'Không thể gọi số'
+                    });
+                }
+            } catch (error) {
+                console.error('Error calling next:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Lỗi kết nối server: ' + error.message
+                });
+            }
+        }
+
+        // Hoàn thành số
+        async function completeNumber() {
+            const counterId = document.getElementById('counterSelect').value;
+            if (!counterId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Cảnh báo',
+                    text: 'Vui lòng chọn quầy trước khi hoàn thành'
+                });
+                return;
+            }
+
+            try {
+                const response = await fetch(`/complete_number/${counterId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: `Hoàn thành số tại ${data.counter_name}`
+                    });
+                    loadCounterInfo();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: data.error || 'Không thể hoàn thành số'
+                    });
+                }
+            } catch (error) {
+                console.error('Error completing number:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Lỗi kết nối server: ' + error.message
+                });
+            }
+        }
+
+        // Gọi lại số
+        async function recallNumber() {
+            const counterId = document.getElementById('counterSelect').value;
+            if (!counterId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Cảnh báo',
+                    text: 'Vui lòng chọn quầy trước khi gọi lại'
+                });
+                return;
+            }
+
+            try {
+                const response = await fetch(`/recall/${counterId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: `Gọi lại số ${data.ticket_number} tại ${data.counter_name}`
+                    });
+                    await playAudioSequence(data.ticket_number, counterId, data.counter_name);
+                    loadCounterInfo();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: data.error || 'Không thể gọi lại số'
+                    });
+                }
+            } catch (error) {
+                console.error('Error recalling number:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Lỗi kết nối server: ' + error.message
+                });
+            }
+        }
+		        // Xem danh sách vé hôm nay
+        async function viewTickets() {
+            const counterId = document.getElementById('counterSelect').value;
+            if (!counterId) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Cảnh báo',
+                    text: 'Vui lòng chọn quầy trước khi xem vé'
+                });
+                return;
+            }
+            try {
+                const response = await fetch('/get_tickets_today', {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi tải danh sách vé',
+                        text: data.error
+                    });
+                    return;
+                }
+                const ticketsTable = document.getElementById('ticketsTable');
+                ticketsTable.innerHTML = '';
+                if (data.tickets.length === 0) {
+                    ticketsTable.innerHTML = '<tr><td colspan="4" class="text-center">Không có vé nào hôm nay.</td></tr>';
+                } else {
+                    data.tickets.forEach(ticket => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${ticket.ticket_number}</td>
+                            <td>${ticket.counter_name}</td>
+                            <td>${ticket.issue_time}</td>
+                            <td>${ticket.cccd}</td>
+                        `;
+                        ticketsTable.appendChild(row);
+                    });
+                }
+                const modal = new bootstrap.Modal(document.getElementById('ticketsModal'));
+                modal.show();
+            } catch (error) {
+                console.error('Failed to load tickets:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi kết nối',
+                    text: 'Không thể tải danh sách vé: ' + error.message
+                });
+            }
+        }
+
+        // Tải lại dữ liệu và khởi tạo
+        function startAutoRefresh() {
+            preloadAudioFiles();
+            loadCounters();
+            updateTime();
+            setInterval(updateTime, 1000);
+        }
+
+        // Tải khi trang mở
+        window.onload = function() {
+            startAutoRefresh();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HCC Counter">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-icon.png') }}">
+    <link rel="icon" href="{{ url_for('static', filename='apple-icon.png') }}">
+    <title>Hệ thống lấy Số Online</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.4/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .header img {
+            max-height: 60px;
+            width: auto;
+        }
+        .header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+        .container {
+            max-width: 800px;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+        .table th, .table td {
+            vertical-align: middle;
+        }
+        .disabled-message {
+            text-align: center;
+            padding: 2rem;
+            background-color: #f8d7da;
+            color: #721c24;
+            border-radius: 0.25rem;
+        }
+        .disabled-message h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .disabled-message h4 {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .btn i {
+            margin-right: 0.5rem;
+        }
+        .swal2-confirm, .swal2-cancel {
+            display: flex !important;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        #ticketCanvas {
+            position: absolute;
+            top: -1000px;
+            width: 105mm;
+            height: 148mm;
+            background-color: white;
+            text-align: center;
+            font-family: 'Roboto', Arial, sans-serif;
+            font-size: 14px;
+            padding: 10mm;
+            box-sizing: border-box;
+            line-height: 1.5;
+            border: 1px solid #000;
+        }
+        #ticketCanvas .center-name {
+            font-size: 16px;
+            font-weight: 700;
+        }
+        #ticketCanvas p {
+            margin: 5mm 0;
+        }
+        #ticketCanvas .title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        #ticketCanvas .ticket-number {
+            font-size: 54px;
+            font-weight: 700;
+        }
+        #ticketCanvas .divider {
+            margin: 5mm 0;
+        }
+        #ticketCanvas .address {
+            font-size: 12px;
+            margin-top: 5mm;
+            white-space: pre-line;
+        }
+		 .captcha-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .captcha-text {
+            font-weight: bold;
+            font-size: 1.2rem;
+            background-color: #e9ecef;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+        }
+        .captcha-refresh {
+            cursor: pointer;
+            color: #007bff;
+        }
+        .captcha-refresh:hover {
+            color: #0056b3;
+        }
+        @media (max-width: 576px) {
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .header img {
+                margin-bottom: 0.5rem;
+            }
+            .header h2 {
+                font-size: 1rem;
+            }
+            .container {
+                padding: 0 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo">
+        <h2 id="centerName">TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG</h2>
+    </div>
+    <div class="container mt-4">
+        {% if online_ticket_enabled %}
+        <div id="ticketFormContainer">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h3 class="card-title text-center text-danger mb-4"><i class="bi bi-calendar-date"></i> Lấy Số Thứ Tự Online</h3>
+                    <form id="ticketForm">
+                        <div class="mb-3">
+                            <label for="cccd" class="form-label">Nhập Số CCCD/CC/SỐ ĐỊNH DANH</label>
+                            <input type="text" class="form-control" id="cccd" required pattern="\d{12}" placeholder="Nhập số CCCD/CC/SỐ ĐỊNH DANH">
+                        </div>
+                        <div class="mb-3">
+                            <label for="counterSelect" class="form-label">Chọn quầy giao dịch</label>
+                            <select class="form-select" id="counterSelect" required>
+                                <option value="" disabled selected>Chọn quầy</option>
+                            </select>
+                        </div>
+						<div class="mb-3">
+                            <label for="captchaInput" class="form-label">Nhập mã xác nhận</label>
+                            <div class="captcha-container">
+                                <span class="captcha-text" id="captchaText"></span>
+                                <i class="bi bi-arrow-repeat captcha-refresh" id="captchaRefresh" title="Làm mới mã"></i>
+                            </div>
+                            <input type="text" class="form-control" id="captchaInput" required pattern="\d{6}" placeholder="Nhập mã xác nhận">
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-ticket"></i>Lấy số</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="card shadow-sm mt-4">
+                <div class="card-body">
+                    <h4 class="card-title text-center text-success mb-4">Trạng thái các quầy giao dịch</h4>
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Quầy</th>
+                                <th>Mô tả</th>
+                                <th>Số hiện tại</th>
+                                <th>Số người chờ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="statusTable">
+                            <!-- Dữ liệu sẽ được thêm bằng JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h3 class="card-title text-center mb-4">Lấy Số Thứ Tự Online</h3>
+                <div class="disabled-message">
+                    <h4>Chức năng lấy số online đã bị tắt</h4>
+                    <p>Vui lòng liên hệ nhân viên để được hỗ trợ qua hotline: 0256 3861927.</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        <!-- Div ẩn để render vé -->
+        <div id="ticketCanvas">
+            <p id="ticketCenterName" class="center-name"></p>
+            <p id="ticketTitle" class="title">SỐ THỨ TỰ (TRỰC TUYẾN)</p>
+            <p id="ticketNumber" class="ticket-number"></p>
+            <p class="divider">===============================</p>
+            <p id="ticketCounter"></p>
+            <p id="ticketCCCD"></p>
+            <p id="ticketTime"></p>
+            <p id="ticketQueueLength"></p>
+            <p class="divider">===============================</p>
+            <p>Vui lòng chờ đến lượt</p>
+            <p id="ticketAddress" class="address"></p>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+	let currentCaptcha = '';
+
+        // Hàm tạo passcode 6 số ngẫu nhiên
+        function generateCaptcha() {
+            currentCaptcha = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('captchaText').textContent = currentCaptcha;
+            document.getElementById('captchaInput').value = '';
+        }
+
+        // Tạo passcode khi tải trang
+        document.addEventListener('DOMContentLoaded', generateCaptcha);
+
+        // Làm mới passcode khi click nút refresh
+        document.getElementById('captchaRefresh').addEventListener('click', generateCaptcha);
+        // Hàm kiểm tra thời gian lấy số (7:00 - 16:30, GMT+7)
+        function isWithinOperatingHours() {
+            const now = new Date();
+            const vnTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Ho_Chi_Minh' }));
+            const hours = vnTime.getHours();
+            const minutes = vnTime.getMinutes();
+            const timeInMinutes = hours * 60 + minutes;
+            return timeInMinutes >= 7 * 60 && timeInMinutes <= 16 * 60 + 30; // 7:00 - 16:30
+        }
+
+        // Hàm hiển thị thông báo tạm dừng lấy số
+        function showOutOfHoursMessage() {
+            const container = document.querySelector('.container');
+            container.innerHTML = `
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h3 class="card-title text-center text-primary mb-4"><i class="bi bi-info-circle-fill"></i> Lấy Số Thứ Tự Online</h3>
+                        <div class="disabled-message">
+                            <h4>Tạm dừng lấy số</h4>
+                            <p>Chức năng lấy số online chỉ hoạt động từ 7:00 Sáng đến 16:30 Chiều.</br> Vui lòng quay lại trong giờ làm việc.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            Swal.fire({
+                icon: 'error',
+                title: 'Lấy Số Thứ Tự Online',
+                html: '<h4>Tạm dừng lấy số</h4><p>Chức năng lấy số online chỉ hoạt động từ 7:00 đến 16:30. Vui lòng quay lại trong giờ làm việc.</p>',
+                showConfirmButton: true,
+                confirmButtonText: 'Đóng'
+            });
+        }
+
+        // Lấy center_name và address từ /get_config
+        async function loadConfig() {
+            try {
+                const response = await fetch('/get_config');
+                if (!response.ok) {
+                    throw new Error('Không thể tải cấu hình');
+                }
+                const data = await response.json();
+                document.getElementById('centerName').textContent = data.center_name || 'TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG';
+                document.getElementById('ticketCenterName').textContent = data.center_name || 'TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG';
+                document.getElementById('ticketAddress').textContent = data.address || 'Số 127 HBT, phường Quy Nhơn, tỉnh Gia Lai';
+            } catch (error) {
+                console.error('Failed to load config:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lấy Số Thứ Tự Online',
+                    html: '<h4>Có lỗi xảy ra </h4><p>Vui lòng liên hệ nhân viên để được hỗ trợ qua hotline: <a href="tel:02563861927">0256 3861927</a>.</p>'
+                });
+                document.getElementById('ticketCenterName').textContent = 'TRUNG TÂM PHỤC VỤ HÀNH CHÍNH CÔNG';
+                document.getElementById('ticketAddress').textContent = 'Số 127 HBT, phường Quy Nhơn, tỉnh Gia Lai';
+            }
+        }
+        loadConfig();
+
+        // Hiển thị thông báo khi chức năng bị tắt hoặc ngoài giờ
+        {% if not online_ticket_enabled %}
+        showOutOfHoursMessage(); // Tạm dùng thông báo ngoài giờ để hiển thị khi chức năng bị tắt
+        {% else %}
+        if (!isWithinOperatingHours()) {
+            showOutOfHoursMessage();
+        }
+        {% endif %}
+
+        // Hàm lưu phiếu dưới dạng JPG
+        async function saveTicketAsJPG(ticketData) {
+            const ticketCanvas = document.getElementById('ticketCanvas');
+            // Định dạng thời gian GMT+7
+            const issueTime = new Date(ticketData.time);
+            const formattedTime = issueTime.toLocaleString('vi-VN', {
+                timeZone: 'Asia/Ho_Chi_Minh',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+
+            // Cập nhật nội dung div
+            document.getElementById('ticketNumber').textContent = ticketData.ticket_number;
+            document.getElementById('ticketCounter').textContent = `Quầy: ${ticketData.counter_name} ${ticketData.counter_description ? `(${ticketData.counter_description})` : ''}`;
+            document.getElementById('ticketCCCD').textContent = `CCCD: ${ticketData.cccd || 'N/A'}`;
+            document.getElementById('ticketTime').textContent = `Thời gian: ${formattedTime}`;
+            document.getElementById('ticketQueueLength').textContent = `Số người chờ: ${ticketData.queue_length}`;
+            document.getElementById('ticketAddress').textContent = `Khi đến quầy vui lòng xuất trình nội dung này.\n Địa chỉ tiếp nhận: ${document.getElementById('ticketAddress').textContent || 'Số 127 HBT, phường Quy Nhơn, tỉnh Gia Lai'}`;
+
+            // Tạm hiển thị div để render
+            ticketCanvas.style.display = 'block';
+
+            try {
+                const canvas = await html2canvas(ticketCanvas, {
+                    scale: 3,
+                    backgroundColor: '#ffffff',
+                    logging: false
+                });
+                const link = document.createElement('a');
+                link.href = canvas.toDataURL('image/jpeg', 0.95);
+                link.download = `ticket_${ticketData.ticket_number}.jpg`;
+                link.click();
+            } catch (error) {
+                console.error('Failed to generate JPG:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lấy Số Thứ Tự Online',
+                    html: '<h4>Lỗi lưu phiếu</h4><p>Không thể lưu phiếu dưới dạng JPG. Vui lòng liên hệ nhân viên để được hỗ trợ qua hotline: <a href="tel:02563861927">0256 3861927</a>.</p>'
+                });
+            } finally {
+                ticketCanvas.style.display = 'none';
+            }
+        }
+
+        // Lấy danh sách quầy và trạng thái hàng đợi
+        async function loadQueueStatus() {
+            if (!isWithinOperatingHours()) {
+                showOutOfHoursMessage();
+                return;
+            }
+            try {
+                const response = await fetch('/get_status');
+                if (!response.ok) {
+                    throw new Error('Không thể tải trạng thái hàng đợi');
+                }
+                const data = await response.json();
+                console.log('get_status response:', data); // Debug
+                if (!data.online_ticket_enabled) {
+                    document.querySelector('.container').innerHTML = `
+                        <div class="card shadow-sm">
+                            <div class="card-body">
+                                <h3 class="card-title text-center mb-4">Lấy Số Thứ Tự Online</h3>
+                                <div class="disabled-message">
+                                    <h4>Chức năng lấy số online đã bị tắt</h4>
+                                    <p>Vui lòng liên hệ nhân viên để được hỗ trợ qua hotline: 0256 3861927.</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lấy Số Thứ Tự Online',
+                        html: '<h4>Chức năng lấy số online đã bị tắt</h4><p>Vui lòng liên hệ nhân viên để được hỗ trợ qua hotline: <a href="tel:02563861927">0256 3861927</a>.</p>'
+                    });
+                    return;
+                }
+
+                // Cập nhật danh sách quầy trong select
+                const counterSelect = document.getElementById('counterSelect');
+                if (counterSelect) {
+                    counterSelect.innerHTML = '<option value="" disabled selected>Chọn quầy</option>';
+                    for (const [counter_id, info] of Object.entries(data.kiosk_info)) {
+                        const option = document.createElement('option');
+                        option.value = counter_id.split('_')[1];
+                        option.textContent = `${info.name} ${info.description ? `(${info.description})` : ''}`;
+                        counterSelect.appendChild(option);
+                    }
+                }
+
+                // Cập nhật bảng trạng thái
+                const statusTable = document.getElementById('statusTable');
+                if (statusTable) {
+                    statusTable.innerHTML = '';
+                    for (const [counter_id, info] of Object.entries(data.kiosk_info)) {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${info.name}</td>
+                            <td>${info.description || 'N/A'}</td>
+                            <td>${data.serving_numbers[counter_id] || 'Không có'}</td>
+                            <td>${data.queues[counter_id]?.length || 0}</td>
+                        `;
+                        statusTable.appendChild(row);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load queue status:', error);
+                document.querySelector('.container').innerHTML = `
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h3 class="card-title text-center mb-4">Lấy Số Thứ Tự Online</h3>
+                            <div class="disabled-message">
+                                <h4>Chức năng lấy số online đã bị tắt</h4>
+                                <p>Vui lòng liên hệ nhân viên để được hỗ trợ qua hotline: 0256 3861927.</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lấy Số Thứ Tự Online',
+                    html: '<h4>Chức năng lấy số online đã bị tắt</h4><p>Vui lòng liên hệ nhân viên để được hỗ trợ qua hotline: <a href="tel:02563861927">0256 3861927</a>.</p>'
+                });
+            }
+        }
+
+        // Chỉ chạy loadQueueStatus nếu form và bảng trạng thái tồn tại và trong giờ
+        {% if online_ticket_enabled %}
+        if (isWithinOperatingHours()) {
+            loadQueueStatus();
+            setInterval(loadQueueStatus, 30000); // Làm mới mỗi 30 giây
+        } else {
+            showOutOfHoursMessage();
+        }
+        {% endif %}
+
+		// Xử lý form lấy số
+        const ticketForm = document.getElementById('ticketForm');
+        if (ticketForm) {
+            ticketForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!isWithinOperatingHours()) {
+                    showOutOfHoursMessage();
+                    return;
+                }
+                const cccd = document.getElementById('cccd').value;
+                const counter_id = document.getElementById('counterSelect').value;
+                const captchaInput = document.getElementById('captchaInput').value;
+
+                // Kiểm tra passcode
+                if (captchaInput !== currentCaptcha) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lấy Số Thứ Tự Online',
+                        html: '<h4>Mã xác nhận không đúng</h4><p>Vui lòng nhập lại mã xác nhận.</p>'
+                    });
+                    generateCaptcha();
+                    return;
+                }
+
+                // Kiểm tra client-side
+                if (!/^\d{12}$/.test(cccd)) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lấy Số Thứ Tự Online',
+                        html: '<h4>Số CCCD không hợp lệ</h4><p>Số CCCD phải là 12 chữ số. Vui lòng kiểm tra lại.</p>'
+                    });
+                    generateCaptcha();
+                    return;
+                }
+                if (!counter_id) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lấy Số Thứ Tự Online',
+                        html: '<h4>Chưa chọn quầy</h4><p>Vui lòng chọn quầy giao dịch.</p>'
+                    });
+                    generateCaptcha();
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/get_online_ticket', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ counter_id, cccd })
+                    });
+                    const data = await response.json();
+                    console.log('get_online_ticket response:', data);
+                    if (data.success !== false) {
+                        await fetch('/print_ticket', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                counter_name: data.counter_name,
+                                ticket_number: data.ticket_number,
+                                queue_length: data.queue_length,
+                                time: data.issue_time,
+                                counter_description: data.counter_description,
+                                cccd: data.cccd
+                            })
+                        });
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            html: `Số thứ tự: <b>${data.ticket_number}</b><br>Quầy: <b>${data.counter_name}(${data.counter_description})</b><br>Số người chờ: <b>${data.queue_length}</b><br>CCCD: <b>${data.cccd}</b><br>`,
+                            showConfirmButton: true,
+                            confirmButtonText: '<i class="bi bi-check-circle"></i> OK',
+                            showCancelButton: true,
+                            cancelButtonText: '<i class="bi bi-save-fill"></i> Tải phiếu về máy',
+                            cancelButtonColor: '#28a745'
+                        }).then((result) => {
+                            if (result.isDismissed && result.dismiss === Swal.DismissReason.cancel) {
+                                saveTicketAsJPG({
+                                    counter_name: data.counter_name,
+                                    ticket_number: data.ticket_number,
+                                    queue_length: data.queue_length,
+                                    time: data.issue_time,
+                                    counter_description: data.counter_description,
+                                    cccd: data.cccd
+                                });
+                            }
+                            document.getElementById('ticketForm').reset();
+                            generateCaptcha();
+                            loadQueueStatus();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lấy Số Thứ Tự Online',
+                            html: `<h4>Lỗi lấy số</h4><p>${data.error || 'Không thể lấy số. Vui lòng thử lại hoặc liên hệ nhân viên qua hotline: <a href="tel:0256 3861927">0256 3861927</a>.</p>'}`
+                        });
+                        generateCaptcha();
+                    }
+                } catch (error) {
+                    console.error('Failed to get ticket:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lấy Số Thứ Tự Online',
+                        html: '<h4>Lỗi kết nối</h4><p>Không thể kết nối đến server. Vui lòng liên hệ nhân viên để được hỗ trợ qua hotline: <a href="tel:0256 3861927">0256 3861927</a>.</p>'
+                    });
+                    generateCaptcha();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

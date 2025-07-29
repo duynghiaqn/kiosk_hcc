@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="HCC Counter">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='apple-icon.png') }}">
+    <link rel="icon" href="{{ url_for('static', filename='apple-icon.png') }}">
+    <title>Chọn quầy giao dịch</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" onerror="this.onerror=null; this.href='/static/bootstrap.min.css';">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" onerror="this.onerror=null; this.href='/static/bootstrap-icons.min.css';">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.4/dist/sweetalert2.min.css" rel="stylesheet" onerror="this.onerror=null; this.href='/static/sweetalert2.min.css';">
+	<link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            margin: 0;
+            padding: 30px;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 100%;
+        }
+        .header h1 {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .header h1 i {
+            font-size: 1.2em;
+            vertical-align: middle;
+        }
+        .counter-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .counter-card {
+            background-color: #ffffff;
+            border: 3px solid #4CAF50;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+        .counter-card:hover {
+            transform: translateY(-5px);
+        }
+        .counter-card h3 {
+            font-size: 2.2rem;
+            color: #4CAF50;
+            margin-bottom: 15px;
+        }
+        .counter-card h3 i {
+            font-size: 1.2em;
+            vertical-align: middle;
+        }
+        .counter-card p {
+            font-size: 1.6rem;
+            color: #555555;
+            margin-bottom: 20px;
+        }
+        .counter-card .btn {
+            font-size: 1.6rem;
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+        .counter-card .btn:hover {
+            background-color: #45a049;
+        }
+        .counter-card .btn i {
+            font-size: 1.2em;
+            vertical-align: middle;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        .pagination .btn {
+            font-size: 1.6rem;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .pagination .btn:hover:not(:disabled) {
+            background-color: #4CAF50;
+            color: #ffffff;
+        }
+        .pagination .btn i {
+            font-size: 1.2em;
+            vertical-align: middle;
+        }
+        .no-counters {
+            text-align: center;
+            font-size: 2rem;
+            color: #4CAF50;
+            margin: 40px 0;
+        }
+        @media (max-width: 1366px) {
+            .header h1 {
+                font-size: 3.2rem;
+            }
+            .counter-card h3 {
+                font-size: 1.9rem;
+            }
+            .counter-card p {
+                font-size: 1.4rem;
+            }
+            .counter-card .btn, .pagination .btn {
+                font-size: 1.4rem;
+            }
+            .no-counters {
+                font-size: 1.8rem;
+            }
+        }
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.8rem;
+            }
+            .counter-grid {
+                grid-template-columns: 1fr;
+            }
+            .counter-card h3 {
+                font-size: 1.6rem;
+            }
+            .counter-card p {
+                font-size: 1.2rem;
+            }
+            .counter-card .btn, .pagination .btn {
+                font-size: 1.2rem;
+            }
+            .no-counters {
+                font-size: 1.6rem;
+            }
+        }
+        @media (min-width: 3840px) {
+            .header h1 {
+                font-size: 5.5vw;
+            }
+            .counter-card h3 {
+                font-size: 3vw;
+            }
+            .counter-card p {
+                font-size: 2.2vw;
+            }
+            .counter-card .btn, .pagination .btn {
+                font-size: 2.2vw;
+            }
+            .no-counters {
+                font-size: 2.8vw;
+            }
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-ticket-content, #print-ticket-content * {
+                visibility: visible;
+            }
+            #print-ticket-content {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 105mm;
+                height: 148mm;
+                overflow: hidden;
+                font-family: "Tahoma", "DejaVu Sans Mono", monospace;
+                font-size: 13pt;
+                text-align: center;
+                line-height: 1.4;
+                color: #000;
+                padding: 5mm;
+            }
+            #print-ticket-content .title-unit {
+                font-size: 13pt;
+                font-weight: bold;
+                margin-bottom: 4px;
+            }
+            #print-ticket-content .title {
+                font-size: 18pt;
+                font-weight: bold;
+                margin-bottom: 8px;
+            }
+            #print-ticket-content .ticket-number {
+                font-size: 64pt;
+                font-weight: bold;
+                margin: 8px 0;
+            }
+            #print-ticket-content .separator {
+                font-size: 14pt;
+                margin: 4px 0;
+            }
+            #print-ticket-content .info {
+                font-size: 14pt;
+                margin: 4px 0;
+            }
+            #print-ticket-content .footer {
+                font-size: 12pt;
+                margin-top: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="bi bi-ticket-fill me-2"></i>Chọn quầy giao dịch</h1>
+        </div>
+        <div class="counter-grid" id="counterGrid"></div>
+        <div class="no-counters" id="noCounters" style="display: none;">
+            Không có quầy giao dịch nào được cấu hình
+        </div>
+        <div class="pagination" id="pagination">
+            <button class="btn btn-outline-success" onclick="debouncedChangePage(-1)" id="prevPage" disabled aria-label="Trang trước"><i class="bi bi-arrow-left me-2"></i>Trang trước</button>
+            <button class="btn btn-outline-success" onclick="debouncedChangePage(1)" id="nextPage" disabled aria-label="Trang sau"><i class="bi bi-arrow-right me-2"></i>Trang sau</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous" onerror="this.onerror=null; this.src='/static/bootstrap.bundle.min.js';"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.14.4/dist/sweetalert2.all.min.js" onerror="this.onerror=null; this.src='/static/sweetalert2.all.min.js';"></script>
+    <script>
+        let currentPage = 1;
+        const countersPerPage = 8;
+        let totalCounters = 0;
+        let centerName = 'TRUNG TÂM PHỤC VỤ HCC'; // Giá trị mặc định
+
+        // Lấy centerName từ API
+        async function fetchCenterName() {
+            try {
+                const response = await fetch('/get_config', {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    centerName = data.center_name || centerName;
+                }
+            } catch (error) {
+                console.error('Error fetching center name:', error);
+            }
+        }
+
+        // Debounce cho changePage
+        function debounce(func, wait) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        // Kiểm tra đăng nhập
+        async function checkLogin() {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                const response = await fetchWithRetry('/get_status', {
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                if (response.status === 401) {
+                    window.location.href = '/login';
+                    return false;
+                }
+                return true;
+            } catch (error) {
+                console.error('Error checking login:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Lỗi kết nối server: ' + error.message,
+                    confirmButtonColor: '#4CAF50',
+                    confirmButtonText: 'Đóng',
+                    customClass: { popup: 'swal2-popup-custom' },
+                    backdrop: 'rgba(0,0,0,0.6)',
+                    role: 'alert'
+                });
+                return false;
+            }
+        }
+
+        // Tải danh sách quầy
+        async function loadCounters() {
+            if (!(await checkLogin())) return;
+
+            try {
+                const cachedData = sessionStorage.getItem('kiosk_info');
+                let data;
+                if (cachedData) {
+                    data = JSON.parse(cachedData);
+                } else {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 10000);
+                    const response = await fetchWithRetry('/get_status', {
+                        headers: { 'Content-Type': 'application/json' },
+                        signal: controller.signal
+                    });
+                    clearTimeout(timeoutId);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error ${response.status}: Không thể tải danh sách quầy`);
+                    }
+                    data = await response.json();
+                    sessionStorage.setItem('kiosk_info', JSON.stringify(data));
+                }
+
+                totalCounters = Object.keys(data.kiosk_info).length;
+                const totalPages = Math.ceil(totalCounters / countersPerPage);
+                currentPage = Math.min(currentPage, totalPages) || 1;
+
+                const counterGrid = document.getElementById('counterGrid');
+                const noCounters = document.getElementById('noCounters');
+                const pagination = document.getElementById('pagination');
+                counterGrid.innerHTML = '';
+
+                if (totalCounters === 0) {
+                    noCounters.style.display = 'block';
+                    pagination.style.display = 'none';
+                    return;
+                }
+
+                noCounters.style.display = 'none';
+                pagination.style.display = 'flex';
+
+                const start = (currentPage - 1) * countersPerPage;
+                const end = Math.min(start + countersPerPage, totalCounters);
+
+                Object.keys(data.kiosk_info).slice(start, end).forEach(counter => {
+                    const counterId = counter.split('_')[1];
+                    const counterName = data.kiosk_info[counter].name || `Quầy ${counterId}`;
+                    const counterDescription = data.kiosk_info[counter].description || '---';
+                    const card = document.createElement('div');
+                    card.className = 'counter-card';
+                    card.innerHTML = `
+                        <h3><i class="bi bi-person-workspace me-2"></i>${counterName}</h3>
+                        <p>${counterDescription}</p>
+                        <button class="btn btn-success" onclick="getNumber(${counterId})" aria-label="Lấy số cho ${counterName}"><i class="bi bi-ticket-fill me-2"></i>Lấy số</button>
+                    `;
+                    counterGrid.appendChild(card);
+                });
+
+                document.getElementById('prevPage').disabled = currentPage === 1;
+                document.getElementById('nextPage').disabled = currentPage === totalPages;
+            } catch (error) {
+                console.error('Error loading counters:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Lỗi tải danh sách quầy: ' + error.message,
+                    confirmButtonColor: '#4CAF50',
+                    confirmButtonText: 'Đóng',
+                    customClass: { popup: 'swal2-popup-custom' },
+                    backdrop: 'rgba(0,0,0,0.6)',
+                    role: 'alert'
+                });
+                document.getElementById('noCounters').style.display = 'block';
+                document.getElementById('noCounters').textContent = 'Lỗi tải danh sách quầy';
+                document.getElementById('pagination').style.display = 'none';
+            }
+        }
+
+        // Chuyển trang
+        function changePage(direction) {
+            currentPage += direction;
+            loadCounters();
+        }
+        const debouncedChangePage = debounce(changePage, 300);
+
+        // Retry logic cho fetch
+        async function fetchWithRetry(url, options, retries = 2) {
+            for (let i = 0; i <= retries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    return response;
+                } catch (error) {
+                    if (i === retries) throw error;
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+        }
+
+        // Hàm in nội dung phiếu qua trình duyệt
+        async function printViaBrowser(counterName, ticketNumber, queueLength, time) {
+            const safeCounterName = (counterName || '').length > 28 ? counterName.slice(0, 28) : counterName;
+            await fetchCenterName(); // Lấy centerName trước khi in
+            const printContent = `
+                <div id="print-ticket-content">
+                    <div class="title-unit">${centerName}</div>
+                    <div class="title">SỐ THỨ TỰ</div>
+                    <div class="ticket-number">${ticketNumber.toString().padStart(4, '0')}</div>
+                    <div class="separator">===============================</div>
+                    <div class="info">Quầy: ${safeCounterName}</div>
+                    <div class="info">Thời gian: ${time.slice(0, 28)}</div>
+                    <div class="info">Số người chờ: ${queueLength}</div>
+                    <div class="separator">===============================</div>
+                    <div class="footer">Vui lòng chờ đến lượt</div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', printContent);
+            window.print();
+            document.getElementById('print-ticket-content').remove();
+        }
+
+        // In phiếu với ESC/POS cho khổ giấy 80mm trên tất cả máy in mặc định
+        async function printTicket(counterName, ticketNumber, queueLength) {
+            if (!counterName || !ticketNumber || queueLength === undefined) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Dữ liệu in phiếu không đầy đủ',
+                    confirmButtonColor: '#4CAF50',
+                    confirmButtonText: 'Đóng',
+                    customClass: { popup: 'swal2-popup-custom' },
+                    backdrop: 'rgba(0,0,0,0.6)',
+                    role: 'alert'
+                });
+                return false;
+            }
+
+            const ESC = '\x1B';
+            const GS = '\x1D';
+            const LF = '\n';
+            const time = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+            const safeCounterName = (counterName || '').length > 28 ? counterName.slice(0, 28) : counterName;
+            await fetchCenterName(); // Lấy centerName trước khi in
+            // Lệnh ESC/POS cơ bản, tương thích với hầu hết máy in nhiệt
+            const commands = [
+                ESC + '@', // Khởi tạo máy in
+                ESC + 't\x1B', // Bảng mã CP1258 cho tiếng Việt
+                ESC + '!\x18', // Font lớn, bold cho tiêu đề
+                centerName + LF, // In centerName
+                'SỐ THỨ TỰ' + LF,
+                ESC + '!\x38', // Font rất lớn, bold cho số
+                ticketNumber.toString().padStart(4, '0') + LF,
+                ESC + '!\x00', // Font bình thường
+                ESC + 'a\x00', // Căn trái
+                '===============================' + LF,
+                `Quầy: ${safeCounterName}` + LF,
+                `Thời gian: ${time.slice(0, 28)}` + LF,
+                `Số người chờ: ${queueLength}` + LF,
+                '===============================' + LF,
+                'Vui lòng chờ đến lượt' + LF,
+                LF + LF,
+                GS + 'V\x00' // Cắt giấy
+            ].join('');
+
+            console.log('In phiếu ESC/POS:\n', commands);
+
+            // Kiểm tra hỗ trợ WebUSB
+            if (!('usb' in navigator)) {
+                console.error('WebUSB không được hỗ trợ trên trình duyệt này');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi in phiếu',
+                    text: 'Trình duyệt không hỗ trợ WebUSB. Vui lòng sử dụng Chrome hoặc Edge phiên bản mới nhất.',
+                    html: `
+                        <p>Vui lòng lưu thông tin phiếu hoặc chụp ảnh màn hình để sử dụng, hoặc in qua trình duyệt:</p>
+                        <pre style="text-align: left; font-family: monospace; font-size: 1.2rem; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+${centerName}
+SỐ THỨ TỰ
+${ticketNumber.toString().padStart(4, '0')}
+===============================
+Quầy: ${safeCounterName}
+Thời gian: ${time.slice(0, 28)}
+Số người chờ: ${queueLength}
+===============================
+Vui lòng chờ đến lượt
+                        </pre>
+                        <p><b>Hướng dẫn:</b> Nếu vẫn không in được, hãy lưu thông tin này để xuất trình tại quầy.</p>
+                    `,
+                    showCancelButton: true,
+                    cancelButtonText: 'Đóng',
+                    confirmButtonText: '<i class="bi bi-printer me-2"></i>In phiếu',
+                    confirmButtonColor: '#4CAF50',
+                    customClass: { popup: 'swal2-popup-custom' },
+                    backdrop: 'rgba(0,0,0,0.6)',
+                    role: 'alert'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        printViaBrowser(counterName, ticketNumber, queueLength, time);
+                    }
+                });
+                return false;
+            }
+
+            try {
+                // Lấy danh sách tất cả các thiết bị USB đã cấp quyền
+                let devices = await navigator.usb.getDevices();
+                if (devices.length === 0) {
+                    // Không có thiết bị, yêu cầu cấp quyền và chọn máy in
+                    await Swal.fire({
+                        icon: 'info',
+                        title: 'Cấp quyền USB',
+                        html: 'Vui lòng chọn máy in USB để cấp quyền truy cập và in phiếu.<br><b>Lưu ý:</b> Đảm bảo máy in đã được cài đặt driver và kết nối USB.',
+                        confirmButtonText: 'Chọn máy in',
+                        confirmButtonColor: '#4CAF50',
+                        customClass: { popup: 'swal2-popup-custom' },
+                        backdrop: 'rgba(0,0,0,0.6)',
+                        role: 'alert'
+                    });
+                    const device = await navigator.usb.requestDevice({ filters: [] });
+                    devices = [device];
+                }
+
+                if (devices.length === 0) {
+                    throw new Error('Không tìm thấy máy in USB nào');
+                }
+
+                let printSuccess = true;
+                const encodedCommands = new TextEncoder('utf-8').encode(commands);
+
+                // Lặp qua tất cả các máy in để in
+                for (const device of devices) {
+                    console.log('Đang xử lý máy in:', device.productName, `(VendorID: ${device.vendorId.toString(16)}, ProductID: ${device.productId.toString(16)})`);
+
+                    // Thử mở thiết bị với retry
+                    let deviceOpened = false;
+                    for (let i = 0; i < 3; i++) {
+                        try {
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 2000);
+                            await device.open();
+                            clearTimeout(timeoutId);
+                            deviceOpened = true;
+                            break;
+                        } catch (error) {
+                            await device.close().catch(() => {});
+                            if (i === 2) {
+                                console.warn(`Không thể mở cổng USB của máy in ${device.productName}: ${error.message}`);
+                                printSuccess = false;
+                                continue;
+                            }
+                            console.warn(`Thử lại mở cổng USB lần ${i + 1} cho ${device.productName}: ${error.message}`);
+                            try {
+                                await device.reset();
+                            } catch (resetError) {
+                                console.warn(`Không thể reset thiết bị: ${resetError.message}`);
+                            }
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                    }
+
+                    if (!deviceOpened) continue;
+
+                    // Chọn cấu hình
+                    if (!device.configuration) {
+                        let configSelected = false;
+                        for (let i = 0;  i < 3; i++) {
+                            try {
+                                const controller = new AbortController();
+                                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                                await device.selectConfiguration(1);
+                                clearTimeout(timeoutId);
+                                configSelected = true;
+                                break;
+                            } catch (error) {
+                                await device.close().catch(() => {});
+                                if (i === 2) {
+                                    console.warn(`Không thể chọn cấu hình USB cho ${device.productName}: ${error.message}`);
+                                    printSuccess = false;
+                                    break;
+                                }
+                                console.warn(`Thử lại chọn cấu hình lần ${i + 1} cho ${device.productName}: ${error.message}`);
+                                await new Promise(resolve => setTimeout(resolve, 1000));
+                            }
+                        }
+                        if (!configSelected) {
+                            await device.close().catch(() => {});
+                            continue;
+                        }
+                    }
+
+                    // Tìm giao diện Printer Class (0x07) hoặc giao diện khác
+                    let interfaceNumber = null;
+                    let endpointOut = null;
+                    let foundPrinterClass = false;
+
+                    for (const iface of device.configuration.interfaces) {
+                        for (const alt of iface.alternates) {
+                            if (alt.interfaceClass === 0x07) {
+                                for (const endpoint of alt.endpoints) {
+                                    if (endpoint.direction === 'out') {
+                                        interfaceNumber = iface.interfaceNumber;
+                                        endpointOut = endpoint.endpointNumber;
+                                        foundPrinterClass = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (foundPrinterClass) break;
+                        }
+                        if (foundPrinterClass) break;
+                    }
+
+                    if (!foundPrinterClass) {
+                        for (const iface of device.configuration.interfaces) {
+                            for (const alt of iface.alternates) {
+                                for (const endpoint of alt.endpoints) {
+                                    if (endpoint.direction === 'out') {
+                                        interfaceNumber = iface.interfaceNumber;
+                                        endpointOut = endpoint.endpointNumber;
+                                        break;
+                                    }
+                                }
+                                if (endpointOut) break;
+                            }
+                            if (endpointOut) break;
+                        }
+                    }
+
+                    if (!endpointOut || interfaceNumber === null) {
+                        await device.close().catch(() => {});
+                        console.warn(`Không tìm thấy cổng USB Printer Port hoặc endpoint xuất dữ liệu cho ${device.productName}`);
+                        printSuccess = false;
+                        continue;
+                    }
+
+                    console.log(`Sử dụng giao diện ${interfaceNumber}, endpoint ${endpointOut} cho ${device.productName}${foundPrinterClass ? ' (Printer Class)' : ''}`);
+
+                    // Yêu cầu giao diện
+                    let interfaceClaimed = false;
+                    for (let i = 0; i < 3; i++) {
+                        try {
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 2000);
+                            await device.claimInterface(interfaceNumber);
+                            clearTimeout(timeoutId);
+                            interfaceClaimed = true;
+                            break;
+                        } catch (error) {
+                            await device.close().catch(() => {});
+                            if (i === 2) {
+                                console.warn(`Không thể yêu cầu cổng USB cho ${device.productName}: ${error.message}`);
+                                printSuccess = false;
+                                break;
+                            }
+                            console.warn(`Thử lại yêu cầu cổng USB lần ${i + 1} cho ${device.productName}: ${error.message}`);
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                    }
+
+                    if (!interfaceClaimed) {
+                        await device.close().catch(() => {});
+                        continue;
+                    }
+
+                    // Gửi lệnh in
+                    let transferSuccess = false;
+                    for (let i = 0; i < 3; i++) {
+                        try {
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 2000);
+                            await device.transferOut(endpointOut, encodedCommands);
+                            clearTimeout(timeoutId);
+                            console.log(`Gửi lệnh in thành công qua cổng USB cho ${device.productName}`);
+                            transferSuccess = true;
+                            break;
+                        } catch (error) {
+                            await device.close().catch(() => {});
+                            if (i === 2) {
+                                console.warn(`Lỗi gửi lệnh in cho ${device.productName}: ${error.message}`);
+                                printSuccess = false;
+                                break;
+                            }
+                            console.warn(`Thử lại gửi lệnh in lần ${i + 1} cho ${device.productName}: ${error.message}`);
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                    }
+
+                    await device.close().catch(() => {});
+                    if (!transferSuccess) {
+                        printSuccess = false;
+                    }
+                }
+
+                if (!printSuccess) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi in phiếu',
+                        text: 'Không thể in trên một hoặc nhiều máy in. Vui lòng kiểm tra kết nối USB, driver máy in, hoặc quyền USB trong trình duyệt.',
+                        html: `
+                            <p>Không thể in trên một hoặc nhiều máy in. Vui lòng kiểm tra: (1) Kết nối USB, (2) Driver máy in, (3) Quyền USB trong Chrome/Edge, (4) Đóng các ứng dụng in khác.</p>
+                            <pre style="text-align: left; font-family: monospace; font-size: 1.2rem; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+${centerName}
+SỐ THỨ TỰ
+${ticketNumber.toString().padStart(4, '0')}
+===============================
+Quầy: ${safeCounterName}
+Thời gian: ${time.slice(0, 28)}
+Số người chờ: ${queueLength}
+===============================
+Vui lòng chờ đến lượt
+                            </pre>
+                            <p><b>Hướng dẫn:</b> Nếu vẫn không in được, hãy in qua trình duyệt hoặc lưu thông tin này để xuất trình tại quầy.</p>
+                        `,
+                        showCancelButton: true,
+                        cancelButtonText: 'Đóng',
+                        confirmButtonText: '<i class="bi bi-printer me-2"></i>In phiếu',
+                        confirmButtonColor: '#4CAF50',
+                        customClass: { popup: 'swal2-popup-custom' },
+                        backdrop: 'rgba(0,0,0,0.6)',
+                        role: 'alert'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            printViaBrowser(counterName, ticketNumber, queueLength, time);
+                        }
+                    });
+                }
+
+                return printSuccess;
+            } catch (error) {
+                console.error('Error printing ticket:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi in phiếu',
+                    text: 'Không thể kết nối với các máy in USB. Vui lòng kiểm tra quyền USB hoặc driver máy in.',
+                    html: `
+                        <p>Không thể kết nối với các máy in USB. Vui lòng kiểm tra: (1) Kết nối USB, (2) Driver máy in</p>
+                        <pre style="text-align: left; font-family: monospace; font-size: 1.2rem; background: #f8f9fa; padding: 10px; border-radius: 5px;">
+${centerName}
+SỐ THỨ TỰ
+${ticketNumber.toString().padStart(4, '0')}
+===============================
+Quầy: ${safeCounterName}
+Thời gian: ${time.slice(0, 28)}
+Số người chờ: ${queueLength}
+===============================
+Vui lòng chờ đến lượt
+                        </pre>
+                        <p><b>Hướng dẫn:</b> Nếu vẫn không in được, hãy in qua trình duyệt hoặc lưu thông tin này để xuất trình tại quầy.</p>
+                    `,
+                    showCancelButton: true,
+                    cancelButtonText: 'Đóng',
+                    confirmButtonText: '<i class="bi bi-printer me-2"></i>In phiếu',
+                    confirmButtonColor: '#4CAF50',
+                    customClass: { popup: 'swal2-popup-custom' },
+                    backdrop: 'rgba(0,0,0,0.6)',
+                    role: 'alert'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        printViaBrowser(counterName, ticketNumber, queueLength, time);
+                    }
+                });
+                return false;
+            }
+        }
+
+        // Lấy số và in phiếu
+        async function getNumber(counterId) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                const response = await fetchWithRetry(`/get_number/${counterId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}: Không thể lấy số`);
+                }
+                const data = await response.json();
+
+                if (data.error || !data.counter_name || !data.ticket_number || data.queue_length === undefined) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: data.error || 'Dữ liệu trả về không đầy đủ',
+                        confirmButtonColor: '#4CAF50',
+                        confirmButtonText: 'Đóng',
+                        customClass: {
+                            title: 'swal2-title-custom',
+                            htmlContainer: 'swal2-html-container-custom',
+                            popup: 'swal2-popup-custom'
+                        },
+                        backdrop: 'rgba(0,0,0,0.6)',
+                        willOpen: () => {
+                            document.querySelector('.swal2-confirm').focus();
+                        },
+                        role: 'alert'
+                    });
+                    return;
+                }
+
+                const time = new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+                const safeCounterName = (data.counter_name || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Số thứ tự của bạn',
+                    html: `
+                        <div style="text-align: left; font-family: Arial, sans-serif; font-size: 1.5rem; line-height: 2rem; padding: 10px;">
+                            <strong>Quầy:</strong> ${safeCounterName}<br>
+                            <strong>Số:</strong> ${data.ticket_number}<br>
+                            <strong>Số người chờ:</strong> ${data.queue_length}<br>
+                            <strong>Thời gian:</strong> ${time}
+                        </div>
+                    `,
+                    confirmButtonColor: '#4CAF50',
+                    confirmButtonText: 'Đóng',
+                    customClass: {
+                        title: 'swal2-title-custom',
+                        htmlContainer: 'swal2-html-container-custom',
+                        popup: 'swal2-popup-custom'
+                    },
+                    backdrop: 'rgba(0,0,0,0.6)',
+                    willOpen: () => {
+                        document.querySelector('.swal2-confirm').focus();
+                    },
+                    role: 'alert'
+                });
+
+                const printSuccess = await printTicket(data.counter_name, data.ticket_number, data.queue_length);
+                if (printSuccess) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: `Đã in phiếu số ${data.ticket_number} cho quầy ${safeCounterName}`,
+                        timer: 1500,
+                        showConfirmButton: false,
+                        confirmButtonColor: '#4CAF50',
+                        confirmButtonText: 'Đóng',
+                        customClass: {
+                            title: 'swal2-title-custom',
+                            htmlContainer: 'swal2-html-container-custom',
+                            popup: 'swal2-popup-custom'
+                        },
+                        backdrop: 'rgba(0,0,0,0.6)',
+                        role: 'alert'
+                    });
+                }
+            } catch (error) {
+                console.error('Error getting number:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Lỗi lấy số: ' + error.message,
+                    confirmButtonColor: '#4CAF50',
+                    confirmButtonText: 'Đóng',
+                    customClass: {
+                        title: 'swal2-title-custom',
+                        htmlContainer: 'swal2-html-container-custom',
+                        popup: 'swal2-popup-custom'
+                    },
+                    backdrop: 'rgba(0,0,0,0.6)',
+                    willOpen: () => {
+                        document.querySelector('.swal2-confirm').focus();
+                    },
+                    role: 'alert'
+                });
+            }
+        }
+
+        // Tải danh sách quầy khi trang tải xong
+        window.onload = function() {
+            loadCounters();
+        };
+
+        // CSS tùy chỉnh cho SweetAlert2
+        document.head.insertAdjacentHTML('beforeend', `
+            <style>
+                .swal2-title-custom {
+                    font-size: 2rem !important;
+                    font-family: Arial, sans-serif !important;
+                    color: #4CAF50 !important;
+                }
+                .swal2-html-container-custom {
+                    font-size: 1.5rem !important;
+                    font-family: Arial, sans-serif !important;
+                }
+                .swal2-confirm {
+                    font-size: 1.3rem !important;
+                    padding: 8px 16px !important;
+                    border-radius: 6px !important;
+                }
+                .swal2-cancel {
+                    font-size: 1.3rem !important;
+                    padding: 8px 16px !important;
+                    border-radius: 6px !important;
+                }
+                .swal2-popup-custom {
+                    border-radius: 10px !important;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+                }
+            </style>
+        `);
+    </script>
+</body>
+</html>
