@@ -97,34 +97,14 @@
 ## 6. Khởi chạy ứng dụng bằng file start_app
 
 ### Bước 1: Chuẩn bị file start_app
-- Đảm bảo bạn có file `start_app.py` trong thư mục dự án của ứng dụng Kiosk HCC. File này thường chứa mã để khởi chạy ứng dụng Flask, ví dụ:
-  ```python
-  from flask import Flask
-  app = Flask(__name__)
+- Đảm bảo bạn có file `start_app.bat` trong thư mục dự án của ứng dụng Kiosk HCC. File này thường chứa mã để khởi chạy ứng dụng 
 
-  @app.route('/')
-  def home():
-      return 'Chào mừng đến với Kiosk HCC!'
-
-  if __name__ == '__main__':
-      app.run(host='0.0.0.0', port=8008)
-  ```
-
-### Bước 2: Chạy ứng dụng
-- Mở Command Prompt và điều hướng đến thư mục dự án:
-  ```
-  cd đường_dẫn_thư_mục_dự_án
-  ```
-- Chạy file `start_app.py` bằng lệnh:
-  ```
-  python start_app.py
-  ```
 - Nếu thành công, bạn sẽ thấy thông báo Flask đang chạy trên `http://0.0.0.0:8008`.
 
-### Bước 3: Kiểm tra ứng dụng
+### Bước 2: Kiểm tra ứng dụng
 - Mở trình duyệt và truy cập `http://localhost:8008` để kiểm tra ứng dụng trên máy cục bộ.
 - Nếu đã mở cổng và đăng ký DynDNS, truy cập qua tên miền (ví dụ: `http://kioskhcc.ddns.net:8008`) từ mạng bên ngoài.
 
 ## Lưu ý
-- Đảm bảo máy tính của bạn luôn chạy để ứng dụng Flask hoạt động liên tục. Để triển khai lâu dài, cân nhắc sử dụng dịch vụ hosting như Heroku hoặc VPS.[](https://pymi.vn/blog/python-free-host/)
-- Nếu gặp lỗi, kiểm tra lại các bước cài đặt, firewall, và cấu hình modem. Bạn cũng có thể tìm thêm thông tin từ cộng đồng Python hoặc tài liệu chính thức.
+- Đảm bảo máy tính của bạn luôn chạy để ứng dụng Flask hoạt động liên tục. Để triển khai lâu dài, cân nhắc sử dụng dịch vụ hosting hoặc VPS.
+- Nếu gặp lỗi, kiểm tra lại các bước cài đặt, firewall, và cấu hình modem.
